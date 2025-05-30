@@ -1,0 +1,8 @@
+services:
+  geo-service:
+    build: .
+    environment:
+      - DADATA_API_KEY=${DADATA_API_KEY}
+      - DADATA_SECRET_KEY=${DADATA_SECRET_KEY}
+    ports:
+      - "8080:8080"
