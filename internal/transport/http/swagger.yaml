@@ -1,0 +1,140 @@
+swagger: "2.0"
+
+info:
+  title: geo-service-1.6.3 API
+  description: |
+    REST-обёртка над DaData.
+    * /api/register — регистрация  
+    * /api/login    — авторизация  
+    * /api/address/search  — поиск по тексту  
+    * /api/address/geocode — поиск по координатам
+  version: "1.0.0"
+
+host: localhost:8080
+basePath: /
+schemes: [http]
+consumes: [application/json]
+produces: [application/json]
+
+# ─────────────────── paths ───────────────────
+paths:
+  /api/register:
+    post:
+      summary: Регистрация пользователя
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema: { $ref: "#/definitions/AuthRequest" }
+      responses:
+        201: { description: Created }                 # успех
+        200:                                          # пользователь уже есть
+          description: Ошибка регистрации
+          schema: { $ref: "#/definitions/AuthError" }
+        400: { description: Неверный формат запроса }
+
+  /api/login:
+    post:
+      summary: Авторизация пользователя
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema: { $ref: "#/definitions/AuthRequest" }
+      responses:
+        200:
+          description: |
+            Успех (токен) **или** ошибка авторизации.
+          schema:
+            oneOf:
+              - $ref: "#/definitions/AuthToken"
+              - $ref: "#/definitions/AuthError"
+        400: { description: Неверный формат запроса }
+
+  /api/address/search:
+    post:
+      summary: Поиск адреса по тексту
+      security: [ { BearerAuth: [] } ]                # ← защищаем JWT
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema: { $ref: "#/definitions/SearchRequest" }
+      responses:
+        200: { description: OK,  schema: { $ref: "#/definitions/Response" } }
+        400: { description: Некорректный запрос }
+        401: { description: Неавторизован / токен отсутствует }
+        500: { description: Внутренняя ошибка }
+
+  /api/address/geocode:
+    post:
+      summary: Реверс-геокодирование
+      security: [ { BearerAuth: [] } ]
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema: { $ref: "#/definitions/GeocodeRequest" }
+      responses:
+        200: { description: OK,  schema: { $ref: "#/definitions/Response" } }
+        400: { description: Некорректный запрос }
+        401: { description: Неавторизован / токен отсутствует }
+        500: { description: Внутренняя ошибка }
+
+# ───────────────── definitions ───────────────
+definitions:
+  # ── auth ─────────────────────
+  AuthRequest:
+    type: object
+    required: [username, password]
+    properties:
+      username: { type: string, example: "alex" }
+      password: { type: string, example: "pass123" }
+
+  AuthToken:
+    type: object
+    properties:
+      token: { type: string, example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+
+  AuthError:
+    type: object
+    properties:
+      error: { type: string, example: "invalid username or password" }
+
+  # ── адресная логика ──────────
+  SearchRequest:
+    type: object
+    required: [query]
+    properties:
+      query: { type: string, minLength: 2, example: "Тверская 7" }
+
+  GeocodeRequest:
+    type: object
+    required: [lat, lng]
+    properties:
+      lat: { type: string, example: "55.7558" }
+      lng: { type: string, example: "37.6173" }
+
+  Address:
+    type: object
+    properties:
+      city:   { type: string, example: "Москва" }
+      street: { type: string, example: "Тверская" }
+      house:  { type: string, example: "7" }
+      lat:    { type: string, example: "55.7558" }
+      lon:    { type: string, example: "37.6173" }
+
+  Response:
+    type: object
+    properties:
+      addresses:
+        type: array
+        items: { $ref: "#/definitions/Address" }
+
+# ─────── security scheme ───────
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    in: header
+    name: Authorization
+    description: "Bearer {JWT}"
