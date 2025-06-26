@@ -31,8 +31,9 @@ paths:
         200:                                          # пользователь уже есть
           description: Ошибка регистрации
           schema: { $ref: "#/definitions/AuthError" }
-        400: { description: Неверный формат запроса }
-
+        400:
+          description: Неверный формат запроса
+          schema: { $ref: "#/definitions/AuthError" }
   /api/login:
     post:
       summary: Авторизация пользователя
@@ -49,8 +50,9 @@ paths:
             oneOf:
               - $ref: "#/definitions/AuthToken"
               - $ref: "#/definitions/AuthError"
-        400: { description: Неверный формат запроса }
-
+        400:
+          description: Неверный формат запроса
+          schema: { $ref: "#/definitions/AuthError" }
   /api/address/search:
     post:
       summary: Поиск адреса по тексту
@@ -62,10 +64,13 @@ paths:
           schema: { $ref: "#/definitions/SearchRequest" }
       responses:
         200: { description: OK,  schema: { $ref: "#/definitions/Response" } }
-        400: { description: Некорректный запрос }
+        400:
+          description: Некорректный запрос
+          schema: { $ref: "#/definitions/AuthError" }
         401: { description: Неавторизован / токен отсутствует }
-        500: { description: Внутренняя ошибка }
-
+        500:
+          description: Внутренняя ошибка
+          schema: { $ref: "#/definitions/AuthError" }
   /api/address/geocode:
     post:
       summary: Реверс-геокодирование
@@ -77,11 +82,15 @@ paths:
           schema: { $ref: "#/definitions/GeocodeRequest" }
       responses:
         200: { description: OK,  schema: { $ref: "#/definitions/Response" } }
-        400: { description: Некорректный запрос }
+        400:
+          description: Некорректный запрос
+          schema: { $ref: "#/definitions/AuthError" }
         401: { description: Неавторизован / токен отсутствует }
-        500: { description: Внутренняя ошибка }
+        500:
+          description: Внутренняя ошибка
+          schema: { $ref: "#/definitions/AuthError" }
 
-# ───────────────── definitions ───────────────
+# ─────────────────── definitions ───────────────
 definitions:
   # ── auth ─────────────────────
   AuthRequest:

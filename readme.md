@@ -2,7 +2,6 @@
 1. Убедись, что ты находишься в корневой директории проекта: /go-kata
 2. Запускай всю систему одной командой: docker compose up --build
 
-
 Почему запускать из корня:
 1. Docker Compose автоматически ищет файл .env
 2. Только в корне проекта определены все сервисы (proxy, geo-service, hugo) и их связи
@@ -11,14 +10,6 @@
 
 P.S. если требуется проверить работу только geo-service, такая возможность тоже есть:
 docker compose up --build из папки go-kata/geo-service
-
-
-Для проверки только geo-servie
-curl -XPOST http://localhost:8080/address/search -d '{"query":"Москва"}' -H "Content-Type: application/json"
-
-Для проверки всей системы
-curl -XPOST http://localhost:8081/address/search -d '{"query":"Москва"}' -H "Content-Type: application/json"
-
 
 # регистрация
 curl -X POST http://localhost:8080/api/register \

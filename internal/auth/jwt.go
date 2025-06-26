@@ -5,8 +5,7 @@ import (
 	"net/http"
 )
 
-var TokenAuth = jwtauth.New("HS256", []byte("super-secret-key"), nil)
-
+// Middleware возвращает HTTP-мидлвар для защиты маршрутов с помощью JWT-аутентификации
 func Middleware(tokenAuth *jwtauth.JWTAuth) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return jwtauth.Verifier(tokenAuth)(jwtauth.Authenticator(next))
