@@ -2,7 +2,7 @@ package http
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/your-org/geo-service/internal/address"
+	"github.com/your-org/geo-service-swagger/internal/address"
 )
 
 func Router(svc address.Service) chi.Router {

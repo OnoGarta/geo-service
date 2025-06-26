@@ -9,10 +9,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/your-org/geo-service/internal/address"
+	"github.com/your-org/geo-service-swagger/internal/address"
 )
 
+// Мокаем сервис
 type mockService struct{}
 
 func (m *mockService) Search(ctx context.Context, q string) ([]*address.Address, error) {
@@ -22,14 +22,21 @@ func (m *mockService) Geocode(ctx context.Context, lat, lng string) ([]*address.
 	return []*address.Address{{City: "Сочи"}}, nil
 }
 
-func TestHandleSearch_OK(t *testing.T) {
-	svc := &mockService{}
-	v := validator.New()
-	handler := makeSearchHandler(svc, v)
+type mockServiceError struct{}
 
+func (m *mockServiceError) Search(ctx context.Context, q string) ([]*address.Address, error) {
+	return nil, fmt.Errorf("err")
+}
+func (m *mockServiceError) Geocode(ctx context.Context, lat, lng string) ([]*address.Address, error) {
+	return nil, fmt.Errorf("err")
+}
+
+func TestSearchHandler_OK(t *testing.T) {
+	handler := SearchHandler(&mockService{})
 	reqBody, _ := json.Marshal(address.SearchRequest{Query: "Москва"})
 	req := httptest.NewRequest("POST", "/api/address/search", bytes.NewReader(reqBody))
 	w := httptest.NewRecorder()
+
 	handler(w, req)
 	if w.Code != http.StatusOK {
 		t.Fatalf("got status %d, want 200", w.Code)
@@ -39,14 +46,12 @@ func TestHandleSearch_OK(t *testing.T) {
 	}
 }
 
-func TestHandleGeocode_OK(t *testing.T) {
-	svc := &mockService{}
-	v := validator.New()
-	handler := makeGeocodeHandler(svc, v)
-
+func TestGeocodeHandler_OK(t *testing.T) {
+	handler := GeocodeHandler(&mockService{})
 	reqBody, _ := json.Marshal(address.GeocodeRequest{Lat: "43.6", Lng: "39.7"})
 	req := httptest.NewRequest("POST", "/api/address/geocode", bytes.NewReader(reqBody))
 	w := httptest.NewRecorder()
+
 	handler(w, req)
 	if w.Code != http.StatusOK {
 		t.Fatalf("got status %d, want 200", w.Code)
@@ -56,12 +61,9 @@ func TestHandleGeocode_OK(t *testing.T) {
 	}
 }
 
-func TestHandleSearch_BadRequest(t *testing.T) {
-	svc := &mockService{}
-	v := validator.New()
-	handler := makeSearchHandler(svc, v)
+func TestSearchHandler_BadRequest(t *testing.T) {
+	handler := SearchHandler(&mockService{})
 
-	// Тест невалидного JSON
 	req := httptest.NewRequest("POST", "/api/address/search", bytes.NewBufferString("not-json"))
 	w := httptest.NewRecorder()
 	handler(w, req)
@@ -69,7 +71,6 @@ func TestHandleSearch_BadRequest(t *testing.T) {
 		t.Fatalf("expected 400, got %d", w.Code)
 	}
 
-	// Тест пустого запроса
 	req2 := httptest.NewRequest("POST", "/api/address/search", bytes.NewBufferString(`{"query":""}`))
 	w2 := httptest.NewRecorder()
 	handler(w2, req2)
@@ -78,12 +79,9 @@ func TestHandleSearch_BadRequest(t *testing.T) {
 	}
 }
 
-func TestHandleGeocode_BadRequest(t *testing.T) {
-	svc := &mockService{}
-	v := validator.New()
-	handler := makeGeocodeHandler(svc, v)
+func TestGeocodeHandler_BadRequest(t *testing.T) {
+	handler := GeocodeHandler(&mockService{})
 
-	// Тест невалидного JSON
 	req := httptest.NewRequest("POST", "/api/address/geocode", bytes.NewBufferString("not-json"))
 	w := httptest.NewRecorder()
 	handler(w, req)
@@ -91,7 +89,6 @@ func TestHandleGeocode_BadRequest(t *testing.T) {
 		t.Fatalf("expected 400, got %d", w.Code)
 	}
 
-	// Тест пустого запроса
 	req2 := httptest.NewRequest("POST", "/api/address/geocode", bytes.NewBufferString(`{"lat":""}`))
 	w2 := httptest.NewRecorder()
 	handler(w2, req2)
@@ -100,12 +97,8 @@ func TestHandleGeocode_BadRequest(t *testing.T) {
 	}
 }
 
-func TestHandleSearch_InternalError(t *testing.T) {
-	// Сервис вернёт ошибку — проверим 500
-	svc := &mockServiceError{}
-	v := validator.New()
-	handler := makeSearchHandler(svc, v)
-
+func TestSearchHandler_InternalError(t *testing.T) {
+	handler := SearchHandler(&mockServiceError{})
 	body, _ := json.Marshal(address.SearchRequest{Query: "err"})
 	req := httptest.NewRequest("POST", "/api/address/search", bytes.NewReader(body))
 	w := httptest.NewRecorder()
@@ -115,11 +108,13 @@ func TestHandleSearch_InternalError(t *testing.T) {
 	}
 }
 
-type mockServiceError struct{}
-
-func (m *mockServiceError) Search(ctx context.Context, q string) ([]*address.Address, error) {
-	return nil, fmt.Errorf("err")
-}
-func (m *mockServiceError) Geocode(ctx context.Context, lat, lng string) ([]*address.Address, error) {
-	return nil, fmt.Errorf("err")
+func TestGeocodeHandler_InternalError(t *testing.T) {
+	handler := GeocodeHandler(&mockServiceError{})
+	body, _ := json.Marshal(address.GeocodeRequest{Lat: "43.6", Lng: "39.7"})
+	req := httptest.NewRequest("POST", "/api/address/geocode", bytes.NewReader(body))
+	w := httptest.NewRecorder()
+	handler(w, req)
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500, got %d", w.Code)
+	}
 }

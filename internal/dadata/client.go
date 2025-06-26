@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/your-org/geo-service/internal/address"
+	"github.com/your-org/geo-service-swagger/internal/address"
 )
 
 type Client struct {

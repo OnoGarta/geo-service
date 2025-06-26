@@ -1,14 +1,13 @@
 package address
 
-import (
-	"context"
-)
+import "context"
 
 type Upstream interface {
 	Search(ctx context.Context, query string) ([]*Address, error)
 	Geocode(ctx context.Context, lat, lng string) ([]*Address, error)
 }
 
+// Service и реализация service — без изменений
 type Service interface {
 	Search(ctx context.Context, query string) ([]*Address, error)
 	Geocode(ctx context.Context, lat, lng string) ([]*Address, error)

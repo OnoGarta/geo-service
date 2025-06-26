@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/your-org/geo-service/internal/address"
+	"github.com/your-org/geo-service-swagger/internal/address"
 )
 
 func SearchHandler(svc address.Service) http.HandlerFunc {

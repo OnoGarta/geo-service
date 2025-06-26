@@ -1,4 +1,4 @@
-module github.com/your-org/geo-service
+module github.com/your-org/geo-service-swagger
 
 go 1.19
 

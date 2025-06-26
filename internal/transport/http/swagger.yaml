@@ -1,7 +1,7 @@
 swagger: "2.0"
 
 info:
-  title: geo-service API
+  title: geo-service-1.6.3 API
   description: |
     REST-обёртка над DaData.
     * /api/register — регистрация  
